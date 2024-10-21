@@ -20,10 +20,45 @@ db.init_app(app)
 api = Api(app)
 
 
-@app.route("/")
-def index():
-    return "<h1>Code challenge</h1>"
+@app.route("/restaurants", methods=["GET"])
+def get_restaurants():
+    restaurants = Restaraunt.query.all()
+    return jsonify([r.to_dict() for r in restaurants])
 
 
-if __name__ == "__main__":
-    app.run(port=5555, debug=True)
+@app.route('/restaraunts/<int:id>',methods=['DELETE'])
+def get_restaraunt(id):
+     restaurant = Restaurant.query.get(id)
+    if restaurant is None:
+        return jsonify({"error": "Restaurant not found"}), 404
+    db.session.delete(restaurant)
+    db.session.commit()
+    return '', 204
+
+@app.route('/pizzas', methods=['GET'])
+def get_pizzas():
+    pizzas = Pizza.query.all()
+    return jsonify([p.to_dict() for p in pizzas])
+
+@app.route('/restaurant_pizzas', methods=['POST'])
+def create_restaurant_pizza():
+    data = request.get_json()
+    price = data.get('price')
+    pizza_id = data.get('pizza_id')
+    restaurant_id = data.get('restaurant_id')
+
+    try:
+        new_restaurant_pizza = RestaurantPizza(price=price, pizza_id=pizza_id, restaurant_id=restaurant_id)
+        db.session.add(new_restaurant_pizza)
+        db.session.commit()
+        return jsonify(new_restaurant_pizza.to_dict()), 201
+    except ValueError as e:
+        return jsonify({"errors": [str(e)]}), 400
+
+
+    def index():
+        return "<h1>Code challenge</h1>"
+
+
+    if __name__ == "__main__":
+        app.run(port=5555, debug=True)
