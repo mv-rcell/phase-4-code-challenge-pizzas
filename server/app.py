@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from models import db, Restaurant, RestaurantPizza, Pizza
 from flask_migrate import Migrate
-from flask import Flask, request, make_response
+from flask import Flask, request, jsonify  
 from flask_restful import Api, Resource
 import os
 
@@ -14,21 +14,22 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.json.compact = False
 
 migrate = Migrate(app, db)
-
 db.init_app(app)
 
 api = Api(app)
 
+@app.route("/")
+def index():
+    return "<h1>Code challenge</h1>"
 
 @app.route("/restaurants", methods=["GET"])
 def get_restaurants():
-    restaurants = Restaraunt.query.all()
+    restaurants = Restaurant.query.all()
     return jsonify([r.to_dict() for r in restaurants])
 
-
-@app.route('/restaraunts/<int:id>',methods=['DELETE'])
-def get_restaraunt(id):
-     restaurant = Restaurant.query.get(id)
+@app.route('/restaurants/<int:id>', methods=['DELETE'])
+def delete_restaurant(id):
+    restaurant = Restaurant.query.get(id)
     if restaurant is None:
         return jsonify({"error": "Restaurant not found"}), 404
     db.session.delete(restaurant)
@@ -55,10 +56,5 @@ def create_restaurant_pizza():
     except ValueError as e:
         return jsonify({"errors": [str(e)]}), 400
 
-
-    def index():
-        return "<h1>Code challenge</h1>"
-
-
-    if __name__ == "__main__":
-        app.run(port=5555, debug=True)
+if __name__ == "__main__":
+    app.run(port=5555, debug=True)
